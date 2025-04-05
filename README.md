@@ -1,6 +1,6 @@
 # WebInsight API
 
-A web API that scrapes content from URLs, analyzes it using Perplexity AI, and returns insights and summaries.
+A secure web API that scrapes content from URLs, analyzes it using Perplexity AI, and returns insights and summaries.
 
 ## Project Overview
 
@@ -11,7 +11,7 @@ WebInsight API is a Python-based web service that allows users to extract meanin
 - **Web Scraping**: Extract content from any URL using Beautiful Soup
 - **Content Analysis**: Analyze content using Perplexity API
 - **Multiple Analysis Types**: Get basic summaries or detailed analysis
-- **API Structure**: Simple RESTful JSON API endpoints
+- **API Security**: Robust authentication with API key and Basic auth options
 - **Rate Limiting**: Protection against API abuse
 - **Error Handling**: Comprehensive error reporting
 
@@ -22,6 +22,7 @@ WebInsight API is a Python-based web service that allows users to extract meanin
 - **Web Scraping**: Beautiful Soup, Requests
 - **Text Processing**: html2text, regular expressions
 - **AI Analysis**: Perplexity API
+- **Security**: API key authentication, Basic authentication
 
 ## Getting Started
 
@@ -60,9 +61,23 @@ WebInsight API is a Python-based web service that allows users to extract meanin
    FLASK_ENV=development
    MAX_CONTENT_LENGTH=200000
    SCRAPE_TIMEOUT=30
+   
+   # Security settings
+   API_KEY=your_generated_api_key_here
+   # or for multiple keys
+   # API_KEYS=key1,key2,key3
+   
+   # Optional Basic Auth
+   BASIC_AUTH_USERNAME=your_username
+   BASIC_AUTH_PASSWORD=your_secure_password
    ```
 
-5. Run the application:
+5. Generate a secure API key if needed:
+   ```python
+   python -c "import secrets; print(secrets.token_urlsafe(32))"
+   ```
+
+6. Run the application:
    ```bash
    python app.py
    ```
@@ -94,11 +109,25 @@ The API will be available at `http://localhost:5000/`.
    - Set WSGI configuration file to point to `wsgi.py`
    - Set source code directory and working directory to your project path
 
-6. Add environment variables in the PythonAnywhere web app configuration or directly in the WSGI file.
+6. Add environment variables in the PythonAnywhere web app configuration:
+   - Go to the Web tab, locate your web app
+   - Find the "Environment variables" section
+   - Add all variables from the .env file example above
 
 7. Reload the web app.
 
 ## API Usage
+
+### Authentication
+
+The API supports two authentication methods:
+
+1. **API Key Authentication**:
+   - Via header: `X-API-Key: your_api_key`
+   - Via query parameter: `?api_key=your_api_key`
+
+2. **Basic Authentication**:
+   - Standard HTTP Basic Authentication with username and password
 
 ### Endpoints
 
@@ -145,9 +174,14 @@ GET /api/health
 
 ### Example Usage
 
-Using cURL:
+Using cURL with API key:
 ```bash
-curl -X POST -H "Content-Type: application/json" -d '{"url":"https://example.com/article"}' http://yourdomain.pythonanywhere.com/api/analyze
+curl -X POST -H "X-API-Key: your_api_key" -H "Content-Type: application/json" -d '{"url":"https://example.com/article"}' http://yourdomain.pythonanywhere.com/api/analyze
+```
+
+Using cURL with Basic auth:
+```bash
+curl -X POST -u "username:password" -H "Content-Type: application/json" -d '{"url":"https://example.com/article"}' http://yourdomain.pythonanywhere.com/api/analyze
 ```
 
 Using Python:
@@ -155,11 +189,14 @@ Using Python:
 import requests
 
 url = "http://yourdomain.pythonanywhere.com/api/analyze"
+headers = {
+    "X-API-Key": "your_api_key"
+}
 payload = {
     "url": "https://example.com/article",
     "query_type": "analysis"
 }
-response = requests.post(url, json=payload)
+response = requests.post(url, headers=headers, json=payload)
 data = response.json()
 print(data["analysis"])
 ```
@@ -174,12 +211,25 @@ WebInsight-API/
 ├── analyzer.py         # Perplexity API integration 
 ├── error_handler.py    # Error handling functionality
 ├── rate_limiter.py     # Rate limiting functionality
+├── security.py         # Authentication and security module
+│
+├── wsgi.py             # PythonAnywhere deployment file
+├── wsgi_auth.py        # Alternative WSGI authentication (optional)
 │
 ├── .env                # Environment variables (API keys, etc.)
 ├── requirements.txt    # Required packages
-├── wsgi.py             # PythonAnywhere deployment file
 └── README.md           # Project documentation
 ```
+
+## Security
+
+The API implements several security features:
+
+1. **Authentication**: API key and Basic auth options
+2. **Secure Comparisons**: Uses cryptography for timing-attack resistant comparisons
+3. **HTTPS**: Recommended for all production deployments
+4. **Rate Limiting**: Prevents abuse of the API
+5. **Logging**: Security events are logged for monitoring
 
 ## Rate Limiting
 
@@ -191,6 +241,8 @@ To prevent abuse, the API implements rate limiting:
 
 The API provides descriptive error messages with appropriate HTTP status codes:
 - 400: Bad Request (validation errors, scraping errors)
+- 401: Unauthorized (missing or invalid authentication)
+- 403: Forbidden (invalid API key)
 - 429: Too Many Requests (rate limit exceeded)
 - 500: Internal Server Error
 - 502: Bad Gateway (external API errors)

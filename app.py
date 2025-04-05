@@ -7,6 +7,7 @@ from scraper import WebScraper
 from analyzer import PerplexityAnalyzer
 from error_handler import register_error_handlers, ValidationError, ScrapingError, AnalysisError
 from rate_limiter import RateLimiter, rate_limit
+from security import setup_security, require_auth
 
 # Load environment variables
 load_dotenv()
@@ -27,6 +28,9 @@ app = Flask(__name__)
 
 # Register error handlers
 register_error_handlers(app)
+
+# Apply security settings
+app = setup_security(app)
 
 # Environment variables
 PERPLEXITY_API_KEY = os.getenv("PERPLEXITY_API_KEY")
@@ -56,6 +60,10 @@ def home():
                     "url": "https://example.com/article",
                     "query_type": "analysis"
                 }
+            },
+            "authentication": {
+                "api_key": "Include X-API-Key header or api_key query parameter",
+                "basic_auth": "Use HTTP Basic Authentication"
             }
         }
     })

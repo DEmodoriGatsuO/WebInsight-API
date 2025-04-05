@@ -93,7 +93,7 @@ Analysis:
         }
         
         data = {
-            "model": "sonar-deep-research",  # Use online model
+            "model": "sonar",
             "messages": [{"role": "user", "content": prompt}],
             "max_tokens": 1024
         }
