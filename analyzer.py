@@ -93,9 +93,8 @@ Analysis:
         }
         
         data = {
-            "model": "sonar-medium-online",  # Use online model
+            "model": "sonar-deep-research",  # Use online model
             "messages": [{"role": "user", "content": prompt}],
-            "temperature": 0.7,
             "max_tokens": 1024
         }
         
